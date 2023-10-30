@@ -130,7 +130,7 @@ getVersion() {
 
 Download_hysteria(){
     archAffix
-	getVersion
+    getVersion
     DOWNLOAD_LINK="https://github.com/apernet/hysteria/releases/download/app%2F${NEW_VER}/hysteria-linux-${CPU}"
     colorEcho $YELLOW "下载hysteria: ${DOWNLOAD_LINK}"
     curl -L -H "Cache-Control: no-cache" -o /etc/hysteria/hysteria ${DOWNLOAD_LINK}
@@ -144,10 +144,10 @@ Generate_conf(){
     Set_pass
     Set_ssl
     Set_up
-	Set_down
-	echo "net.core.rmem_max=16777216" >> sysctl.conf
-	echo "net.core.wmem_max=16777216" >> sysctl.conf
-	sysctl -p
+    Set_down
+    echo "net.core.rmem_max=16777216" >> sysctl.conf >/dev/null 2>&1
+    echo "net.core.wmem_max=16777216" >> sysctl.conf >/dev/null 2>&1
+    sysctl -p >/dev/null 2>&1
 }
 
 Deploy_hysteria(){
@@ -271,9 +271,9 @@ EOF
 
 Install_hysteria(){
     Generate_conf
-	Write_config
-	Download_hysteria
-	Deploy_hysteria
+    Write_config
+    Download_hysteria
+    Deploy_hysteria
     colorEcho $BLUE "安装完成"
     echo ""
     ShowInfo
@@ -314,19 +314,22 @@ ShowInfo() {
 GetConfig() {
     port=`grep listen ${conf} | head -n1 | awk -F ' ' '{print $2}' | cut -d: -f2`
     pass=`grep password ${conf} |  awk -F ':' '{print $2}' | tail -n1 | cut -d\  -f2`
-	domain=`grep domain ${conf} | awk -F ':' '{print $2}' | cut -d\  -f2`
-	up=`grep up ${conf} | awk -F ':' '{print $2}' | awk -F ' ' '{print $1$2}'`
-	down=`grep down ${conf} | awk -F ':' '{print $2}' | awk -F ' ' '{print $1$2}'`
+    domain=`grep domain ${conf} | awk -F ':' '{print $2}' | cut -d\  -f2`
+    up=`grep up ${conf} | awk -F ':' '{print $2}' | awk -F ' ' '{print $1$2}'`
+    down=`grep down ${conf} | awk -F ':' '{print $2}' | awk -F ' ' '{print $1$2}'`
 }
 
 outputhysteria() {
     echo -e "   ${BLUE}协议: ${PLAIN} ${RED}hysteria${PLAIN}"
-    echo -e "   ${BLUE}地址(IP): ${PLAIN} ${RED}${IP}${PLAIN}"
+    echo -e "   ${BLUE}地址(IP4): ${PLAIN} ${RED}${I4}${PLAIN}"
+    if [[ ! -z "$IP6" ]]; then
+        echo -e "   ${BLUE}地址(IP6): ${PLAIN} ${RED}${IP6}${PLAIN}"
+    fi
     echo -e "   ${BLUE}端口(PORT)：${PLAIN} ${RED}${port}${PLAIN}"
     echo -e "   ${BLUE}密码(PASS)：${PLAIN} ${RED}${pass}${PLAIN}"
-	echo -e "   ${BLUE}域名(DOMAIN)：${PLAIN} ${RED}${domain}${PLAIN}"
-	echo -e "   ${BLUE}上传(UP)：${PLAIN} ${RED}${up}${PLAIN}"
-	echo -e "   ${BLUE}下载(DOWN)：${PLAIN} ${RED}${down}${PLAIN}"
+    echo -e "   ${BLUE}域名(DOMAIN)：${PLAIN} ${RED}${domain}${PLAIN}"
+    echo -e "   ${BLUE}上传(UP)：${PLAIN} ${RED}${up}${PLAIN}"
+    echo -e "   ${BLUE}下载(DOWN)：${PLAIN} ${RED}${down}${PLAIN}"
 }
 
 checkSystem
