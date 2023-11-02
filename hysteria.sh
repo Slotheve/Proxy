@@ -351,6 +351,7 @@ Write_client(){
     echo "   密码(PASS)： ${PASS}" >> ${client}
     echo "   域名(DOMAIN)： ${DOMAIN}" >> ${client}
     echo "   伪装域名(PROXY)： ${PROXY}" >> ${client}
+    echo ""
 }
 
 Install_hysteria(){
