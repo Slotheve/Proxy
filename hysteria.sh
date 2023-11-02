@@ -375,7 +375,7 @@ Stop_hysteria(){
 }
 
 Uninstall_hysteria(){
-    read -p $'是否卸载hysteria？[y/n]\n (默认n, 回车): ' answer
+    read -p $' 是否卸载hysteria？[y/n]\n (默认n, 回车): ' answer
     if [[ "${answer}" = "y" ]]; then
 		systemctl stop hysteria
 		systemctl disable hysteria >/dev/null 2>&1
