@@ -334,6 +334,7 @@ EOF
 }
 
 Write_client(){
+    echo ""
     echo " hysteria配置文件:  ${conf}" >> ${client}
     echo " hysteria配置信息：" >> ${client}
     if [[ -z "$IP6" ]]; then
