@@ -332,7 +332,6 @@ EOF
 }
 
 Write_client(){
-    echo ""
     echo " hysteria配置文件:  ${conf}" >> ${client}
     echo " hysteria配置信息：" >> ${client}
     if [[ -z "$IP6" ]]; then
@@ -349,7 +348,6 @@ Write_client(){
     echo "   密码(PASS)： ${PASS}" >> ${client}
     echo "   域名(DOMAIN)： ${DOMAIN}" >> ${client}
     echo "   伪装域名(PROXY)： ${PROXY}" >> ${client}
-    echo ""
 }
 
 Install_hysteria(){
@@ -361,6 +359,7 @@ Install_hysteria(){
     colorEcho $BLUE "安装完成"
     echo ""
     cat ${client}
+    echo ""
 }
 
 Start_hysteria(){
@@ -438,7 +437,9 @@ menu() {
 			Stop_hysteria
 			;;
 		6)
+  			echo ""
 			cat ${client}
+   			echo ""
 			;;
 		*)
 			colorEcho $RED " 请选择正确的操作！"
