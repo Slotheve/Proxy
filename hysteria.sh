@@ -117,8 +117,6 @@ normalizeVersion() {
                 echo "v$1"
             ;;
         esac
-    else
-        echo ""
     fi
 }
 
@@ -155,7 +153,7 @@ Generate_conf(){
     Set_port
     Set_pass
     Set_ssl
-	Set_proxy
+    Set_proxy
     echo "net.core.rmem_max=16777216" >> sysctl.conf >/dev/null 2>&1
     echo "net.core.wmem_max=16777216" >> sysctl.conf >/dev/null 2>&1
     sysctl -p >/dev/null 2>&1
@@ -304,7 +302,7 @@ Set_proxy() {
     read -p $'设置伪装域名[去https://]\n(默认icloud): ' PROXY
     [[ -z "${PROXY}" ]] && PROXY="www.icloud.com"
     colorEcho $BLUE "伪装域名：${PROXY}"
-	echo ""
+    echo ""
 }
 
 Write_config(){
