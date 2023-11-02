@@ -13,10 +13,22 @@ IP4=`curl -sL -4 ip.sb`
 IP6=`curl -sL -6 ip.sb`
 CPU=`uname -m`
 conf="/etc/hysteria/config.yaml"
+client="/etc/hysteria/client.yaml"
 
 colorEcho() {
     echo -e "${1}${@:2}${PLAIN}"
 }
+
+ports=(
+固定单端
+端口跳跃
+)
+
+domains=(
+gateway.icloud.com
+www.bing.com
+自定义自签
+)
 
 archAffix(){
     if [[ "$CPU" = "x86_64" ]] || [[ "$CPU" = "amd64" ]]; then
@@ -143,8 +155,7 @@ Generate_conf(){
     Set_port
     Set_pass
     Set_ssl
-    Set_up
-    Set_down
+	Set_proxy
     echo "net.core.rmem_max=16777216" >> sysctl.conf >/dev/null 2>&1
     echo "net.core.wmem_max=16777216" >> sysctl.conf >/dev/null 2>&1
     sysctl -p >/dev/null 2>&1
@@ -170,74 +181,126 @@ EOF
     systemctl restart hysteria
 }
 
-Set_pass() {
-    read -p $'请设置hysteria密码\n(默认随机生成, 回车): ' PASS
-    [[ -z "$PASS" ]] && PASS=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1`
-	colorEcho $BLUE " 密码：$PASS"
-    echo ""
-}
-
 Set_port(){
-    read -p $'请输入hysteria端口 [1-65535]\n(默认: 443，回车): ' PORT
-    [[ -z "${PORT}" ]] && PORT="443"
-    echo $((${PORT}+0)) &>/dev/null
-    if [[ $? -eq 0 ]]; then
-	if [[ ${PORT} -ge 1 ]] && [[ ${PORT} -le 65535 ]]; then
-		colorEcho $BLUE "端口: ${PORT}"
-		echo ""
-	else
-		colorEcho $RED "输入错误, 请输入正确的端口。"
-		Set_port
-	fi
-    else
-		colorEcho $RED "输入错误, 请输入数字。"
-		Set_port
+    for ((i=1;i<=${#domains[@]};i++ )); do
+ 		hint="${domains[$i-1]}"
+ 		echo -e "${GREEN}${i}${PLAIN}) ${hint}"
+    done
+    read -p "请选择域名[1/2] (默认: ${domains[0]}):" pick
+    [ -z "$pick" ] && pick=1
+    expr ${pick} + 1 &>/dev/null
+    if [ $? -ne 0 ]; then
+		colorEcho $RED "错误, 请输入正确选项"
+		continue
+    fi
+    if [[ "$pick" -lt 1 || "$pick" -gt ${#domains[@]} ]]; then
+		colorEcho $RED "错误, 请输入正确选项"
+		exit 0
+    fi
+    if [[ "$pick" = "1" ]]; then
+		read -p $'请输入固定端口 [1-65535]\n(默认: 6666，回车): ' PORT
+		[[ -z "${PORT}" ]] && PORT="6666"
+		echo $((${PORT}+0)) &>/dev/null
+		if [[ $? -eq 0 ]]; then
+			if [[ ${PORT} -ge 1 ]] && [[ ${PORT} -le 65535 ]]; then
+				colorEcho $BLUE "端口: ${PORT}"
+				echo ""
+			else
+				colorEcho $RED "输入错误, 请输入正确的端口。"
+				exit 0
+			fi
+		else
+			colorEcho $RED "输入错误, 请输入数字。"
+			exit 0
+		fi
+    elif [[ "$pick" = "2" ]]; then
+		read -p $'请输入起始端口 [1-65535]\n(默认: 10001，回车): ' FPORT
+		[[ -z "${FPORT}" ]] && FPORT="10001"
+		echo $((${FPORT}+0)) &>/dev/null
+		if [[ $? -eq 0 ]]; then
+			if [[ ${FPORT} -ge 1 ]] && [[ ${FPORT} -le 65535 ]]; then
+				read -p $'请输入末尾端口 [>起始-65535]\n(默认: 60000，回车): ' EPORT
+				[[ -z "${EPORT}" ]] && EPORT="60000"
+				echo $((${EPORT}+0)) &>/dev/null
+				if [[ $? -eq 0 ]]; then
+					if [[ ${EPORT} -ge 1 ]] && [[ ${EPORT} -le 65535 ]]; then
+						iptables -t nat -A PREROUTING -p udp --dport $((${FPORT}+1)):$EPORT  -j DNAT --to-destination :$FPORT
+						ip6tables -t nat -A PREROUTING -p udp --dport $((${FPORT}+1)):$EPORT  -j DNAT --to-destination :$FPORT
+						netfilter-persistent save >/dev/null 2>&1
+						PORT="${FPORT}"
+						colorEcho $BLUE "端口范围: ${FPORT}-${EPORT}"
+						echo ""
+					else
+						colorEcho $RED "输入错误, 请输入正确的端口。"
+						exit 0
+					fi
+				else
+					colorEcho $RED "输入错误, 请输入数字。"
+					exit 0
+				fi
+				echo ""
+			else
+				colorEcho $RED "输入错误, 请输入正确的端口。"
+				exit 0
+			fi
+		else
+			colorEcho $RED "输入错误, 请输入数字。"
+			exit 0
+		fi
     fi
 }
 
+Set_pass() {
+    read -p $'请设置hysteria密码\n(默认随机生成, 回车): ' PASS
+    [[ -z "$PASS" ]] && PASS=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1`
+	colorEcho $BLUE "密码：$PASS"
+    echo ""
+}
+
 Set_ssl() {
-	read -p $'请输入解析到VPS的域名\n(请勿开启CF小云朵): ' DOMAIN
-	if [[ -z "$DOMAIN" ]]; then
-		colorEcho $RED "请输入域名"
-		Set_domain
-	else
-		colorEcho $BLUE "域名: $DOMAIN"
+    for ((i=1;i<=${#domains[@]};i++ )); do
+ 		hint="${domains[$i-1]}"
+ 		echo -e "${GREEN}${i}${PLAIN}) ${hint}"
+    done
+    read -p "请选择域名[1-3] (默认: ${domains[0]}):" pick
+    [ -z "$pick" ] && pick=1
+    expr ${pick} + 1 &>/dev/null
+    if [ $? -ne 0 ]; then
+		colorEcho $RED "错误, 请输入正确选项"
+		continue
+    fi
+    if [[ "$pick" -lt 1 || "$pick" -gt ${#domains[@]} ]]; then
+		echo -e "${red}错误, 请输入正确选项${plain}"
+		exit 0
+    fi
+    DOMAIN=${domains[$pick-1]}
+    if [[ "$pick" = "3" ]]; then
+		read -p $'请输入自定义域名: ' DOMAIN
+		if [[ -z "${DOMAIN}" ]]; then
+			colorEcho $RED "错误, 请输入域名"
+			echo ""
+			exit 1
+		else
+			colorEcho $BLUE "域名：${DOMAIN}"
+			echo ""
+			read -p $'请设置私钥路径\n(不输默认生成): ' KEY
+			colorEcho $BLUE "私钥路径：${KEY}"
+			echo ""
+			read -p $'请设置证书路径\n(不输默认生成): ' CERT
+			colorEcho $BLUE "证书路径：${CERT}"
+			echo ""
+		fi
+    else
+		colorEcho $BLUE "域名：${domains[$pick-1]}"
 		echo ""
-		read -p $'请设置私钥路径\n(不输默认生成): ' KEY
-		[[ -z "$KEY" ]] && mkdir -pv /etc/hysteria && openssl genrsa \
-		-out /etc/hysteria/hysteria.key 2048 && chmod \
-		+x /etc/hysteria/hysteria.key && KEY="/etc/hysteria/hysteria.key"
-		colorEcho $BLUE "密钥路径：$KEY"
-		echo ""
-		read -p $'请设置证书路径\n(不输默认生成): ' CERT
-		[[ -z "$CERT" ]] && openssl req -new -x509 -days 3650 -key /etc/hysteria/hysteria.key \
-		-out /etc/hysteria/hysteria.crt -subj "/C=US/ST=LA/L=LAX/O=Hysteria/OU=Hysteria/CN=&DOMAIN" \
-		&& chmod +x /etc/hysteria/hysteria.crt && CERT="/etc/hysteria/hysteria.crt"
-		colorEcho $BLUE "证书路径：$CERT"
-		echo ""
-	fi
+    fi
 }
 
-Set_up() {
-	read -p $'请输入VPS上传带宽, 不超过85%的VPS带宽\n(格式: XX空格b/k/m/g/t): ' UP
-	if [[ -z "$UP" ]]; then
-		colorEcho $RED "请输入上传带宽"
-		Set_bw
-	else
-		colorEcho $BLUE "上传带宽: $UP"
-		echo ""
-	fi
-}
-
-Set_down() {
-	read -p $'请输入VPS下载带宽, 不超过80%的VPS带宽\n(格式: XX空格b/k/m/g/t): ' DOWN
-	if [[ -z "$DOWN" ]]; then
-		colorEcho $RED "请输入下载带宽"
-		Set_bw
-	else
-		colorEcho $BLUE "下载带宽: $DOWN"
-		echo ""
-	fi
+Set_proxy() {
+    read -p $'设置伪装域名[去https://]\n(默认icloud): ' PROXY
+    [[ -z "${PROXY}" ]] && PROXY="www.icloud.com"
+    colorEcho $BLUE "伪装域名：${PROXY}"
+	echo ""
 }
 
 Write_config(){
@@ -252,23 +315,43 @@ auth:
   type: password
   password: $PASS
 
-bandwidth:
-  up: $UP
-  down: $DOWN
+quic:
+  initStreamReceiveWindow: 16777216
+  maxStreamReceiveWindow: 16777216
+  initConnReceiveWindow: 33554432
+  maxConnReceiveWindow: 33554432
 
 masquerade: 
   type: proxy
   proxy:
-    url: https://www.icloud.com/
+    url: https://${PROXY}
     rewriteHost: true
-
-# domain: $DOMAIN
 EOF
+}
+
+Write_client(){
+    echo " hysteria配置文件:  ${conf}" >> ${client}
+    echo " hysteria配置信息：" >> ${client}
+    if [[ -z "$IP6" ]]; then
+		echo "   地址(IP4):  ${IP4}" >> ${client}
+    else
+		echo -e "   地址(IP4):  ${IP4}" >> ${client}
+		echo -e "   地址(IP6):  ${IP6}" >> ${client}
+    fi
+    if [[ ! -z ${FPORT} ]]; then
+		echo "   端口(PORT)： ${FPORT},$((${FPORT}+1))-${EPORT}" >> ${client}
+    elif [[ -z ${FPORT} ]]; then
+		echo "   端口(PORT)： ${PORT}" >> ${client}
+    fi
+    echo "   密码(PASS)： ${PASS}" >> ${client}
+    echo "   域名(DOMAIN)： ${DOMAIN}" >> ${client}
+    echo "   伪装域名(PROXY)： ${PROXY}" >> ${client}
 }
 
 Install_hysteria(){
     Generate_conf
     Write_config
+    Write_client
     Download_hysteria
     Deploy_hysteria
     colorEcho $BLUE "安装完成"
@@ -276,9 +359,14 @@ Install_hysteria(){
     ShowInfo
 }
 
+Start_hysteria(){
+    systemctl start hysteria
+    colorEcho $BLUE " hysteria已启动"
+}
+
 Restart_hysteria(){
     systemctl restart hysteria
-    colorEcho $BLUE " hysteria已启动"
+    colorEcho $BLUE " hysteria已重启"
 }
 
 Stop_hysteria(){
@@ -298,37 +386,6 @@ Uninstall_hysteria(){
     else
 		colorEcho $BLUE " 取消卸载"
     fi
-}
-
-ShowInfo() {
-    echo ""
-    echo -e " ${BLUE}hysteria配置文件: ${PLAIN} ${RED}${conf}${PLAIN}"
-    colorEcho $BLUE " hysteria配置信息："
-    GetConfig
-    outputhysteria
-}
-
-GetConfig() {
-    port=`grep listen ${conf} | head -n1 | awk -F ' ' '{print $2}' | cut -d: -f2`
-    pass=`grep password ${conf} |  awk -F ':' '{print $2}' | tail -n1 | cut -d\  -f2`
-    domain=`grep domain ${conf} | awk -F ':' '{print $2}' | cut -d\  -f2`
-    up=`grep up ${conf} | awk -F ':' '{print $2}' | awk -F ' ' '{print $1$2}'`
-    down=`grep down ${conf} | awk -F ':' '{print $2}' | awk -F ' ' '{print $1$2}'`
-}
-
-outputhysteria() {
-    echo -e "   ${BLUE}协议: ${PLAIN} ${RED}hysteria${PLAIN}"
-    if [[ -z "$IP6" ]]; then
-        echo -e "   ${BLUE}地址(IP4): ${PLAIN} ${RED}${IP4}${PLAIN}"
-    else
-        echo -e "   ${BLUE}地址(IP4): ${PLAIN} ${RED}${IP4}${PLAIN}"
-        echo -e "   ${BLUE}地址(IP6): ${PLAIN} ${RED}${IP6}${PLAIN}"
-    fi
-    echo -e "   ${BLUE}端口(PORT)：${PLAIN} ${RED}${port}${PLAIN}"
-    echo -e "   ${BLUE}密码(PASS)：${PLAIN} ${RED}${pass}${PLAIN}"
-    echo -e "   ${BLUE}域名(DOMAIN)：${PLAIN} ${RED}${domain}${PLAIN}"
-    echo -e "   ${BLUE}上传(UP)：${PLAIN} ${RED}${up}${PLAIN}"
-    echo -e "   ${BLUE}下载(DOWN)：${PLAIN} ${RED}${down}${PLAIN}"
 }
 
 checkSystem
@@ -367,13 +424,16 @@ menu() {
 			Uninstall_hysteria
 			;;
 		3)
-			Restart_hysteria
+			Start_hysteria
 			;;
 		4)
-			Stop_hysteria
+			Restart_hysteria
 			;;
 		5)
-			ShowInfo
+			Stop_hysteria
+			;;
+		6)
+			cat ${client}
 			;;
 		*)
 			colorEcho $RED " 请选择正确的操作！"
