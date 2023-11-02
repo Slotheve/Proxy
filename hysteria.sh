@@ -401,10 +401,11 @@ menu() {
 	echo -e "  ${GREEN}1.${PLAIN}  安装Hysteria"
 	echo -e "  ${GREEN}2.${PLAIN}  ${RED}卸载Hysteria${PLAIN}"
 	echo " ----------------------"
-	echo -e "  ${GREEN}3.${PLAIN}  重启Hysteria"
-	echo -e "  ${GREEN}4.${PLAIN}  停止Hysteria"
+ 	echo -e "  ${GREEN}3.${PLAIN}  启动Hysteria"
+	echo -e "  ${GREEN}4.${PLAIN}  重启Hysteria"
+	echo -e "  ${GREEN}5.${PLAIN}  停止Hysteria"
 	echo " ----------------------"
-	echo -e "  ${GREEN}5.${PLAIN}  查看Hysteria配置"
+	echo -e "  ${GREEN}6.${PLAIN}  查看Hysteria配置"
 	echo " ----------------------"
 	echo -e "  ${GREEN}0.${PLAIN}  退出"
 	echo ""
@@ -412,7 +413,7 @@ menu() {
 	statusText
 	echo 
 
-	read -p " 请选择操作[0-5]：" answer
+	read -p " 请选择操作[0-6]：" answer
 	case $answer in
 		0)
 			exit 0
