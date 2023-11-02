@@ -238,7 +238,6 @@ Set_port(){
 					colorEcho $RED "输入错误, 请输入数字。"
 					exit 0
 				fi
-				echo ""
 			else
 				colorEcho $RED "输入错误, 请输入正确的端口。"
 				exit 0
