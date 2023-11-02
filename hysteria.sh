@@ -182,18 +182,18 @@ EOF
 }
 
 Set_port(){
-    for ((i=1;i<=${#domains[@]};i++ )); do
- 		hint="${domains[$i-1]}"
+    for ((i=1;i<=${#ports[@]};i++ )); do
+ 		hint="${ports[$i-1]}"
  		echo -e "${GREEN}${i}${PLAIN}) ${hint}"
     done
-    read -p "请选择域名[1/2] (默认: ${domains[0]}):" pick
+    read -p "请选择域名[1/2] (默认: ${ports[0]}):" pick
     [ -z "$pick" ] && pick=1
     expr ${pick} + 1 &>/dev/null
     if [ $? -ne 0 ]; then
 		colorEcho $RED "错误, 请输入正确选项"
 		continue
     fi
-    if [[ "$pick" -lt 1 || "$pick" -gt ${#domains[@]} ]]; then
+    if [[ "$pick" -lt 1 || "$pick" -gt ${#ports[@]} ]]; then
 		colorEcho $RED "错误, 请输入正确选项"
 		exit 0
     fi
