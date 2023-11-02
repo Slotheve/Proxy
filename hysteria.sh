@@ -290,6 +290,11 @@ Set_ssl() {
 			echo ""
 		fi
     else
+		KEY="/etc/hysteria/hysteria.key"
+		CERT="/etc/hysteria/hysteria.crt"
+		openssl ecparam -genkey -name prime256v1 -out ${KEY}
+		openssl req -new -x509 -days 36500 -key ${KEY} -out ${CERT} -subj "/CN=${domains[$pick-1]}"
+		chmod +x /etc/hysteria/hysteria.*
 		colorEcho $BLUE "域名：${domains[$pick-1]}"
 		echo ""
     fi
