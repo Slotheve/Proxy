@@ -242,7 +242,7 @@ Set_down() {
 
 Write_config(){
     cat > ${conf}<<-EOF
-listen: :443
+listen: :$PORT
 
 tls:
   cert: $CERT
@@ -321,8 +321,10 @@ GetConfig() {
 
 outputhysteria() {
     echo -e "   ${BLUE}协议: ${PLAIN} ${RED}hysteria${PLAIN}"
-    echo -e "   ${BLUE}地址(IP4): ${PLAIN} ${RED}${I4}${PLAIN}"
-    if [[ ! -z "$IP6" ]]; then
+    if [[ -z "$IP6" ]]; then
+        echo -e "   ${BLUE}地址(IP4): ${PLAIN} ${RED}${IP4}${PLAIN}"
+    else
+        echo -e "   ${BLUE}地址(IP4): ${PLAIN} ${RED}${IP4}${PLAIN}"
         echo -e "   ${BLUE}地址(IP6): ${PLAIN} ${RED}${IP6}${PLAIN}"
     fi
     echo -e "   ${BLUE}端口(PORT)：${PLAIN} ${RED}${port}${PLAIN}"
