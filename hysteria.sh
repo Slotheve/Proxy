@@ -355,7 +355,7 @@ Install_hysteria(){
     Deploy_hysteria
     colorEcho $BLUE "安装完成"
     echo ""
-    ShowInfo
+    cat ${client}
 }
 
 Start_hysteria(){
