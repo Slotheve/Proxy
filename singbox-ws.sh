@@ -223,8 +223,8 @@ installSingBox() {
     tar -xvf /tmp/sing-box/sing-box.tar.gz -C /tmp/sing-box
     cp /tmp/sing-box/sing-box-${NEW_VER}-linux-${ARCH}/sing-box /usr/local/bin
     chmod +x /usr/local/bin/sing-box || {
-	colorEcho $RED " SingBox安装失败"
-	exit 1
+    colorEcho $RED " SingBox安装失败"
+    exit 1
     }
 
     cat >/etc/systemd/system/sing-box.service<<-EOF
@@ -249,6 +249,8 @@ EOF
 	chmod 644 ${CONFIG_FILE}
 	systemctl daemon-reload
 	systemctl enable sing-box.service
+ 	echo "net.ipv4.tcp_fastopen = 3" >> /etc/sysctl.conf
+  	sysctl -p
 }
 
 vmessConfig() {
