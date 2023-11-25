@@ -311,8 +311,8 @@ installXray() {
     cp /tmp/xray/xray /usr/local/bin
     cp /tmp/xray/geo* /usr/local/share/xray
     chmod +x /usr/local/bin/xray || {
-	colorEcho $RED " Xray安装失败"
-	exit 1
+    colorEcho $RED " Xray安装失败"
+    exit 1
     }
 
     cat >/etc/systemd/system/xray.service<<-EOF
@@ -334,8 +334,10 @@ RestartPreventExitStatus=23
 [Install]
 WantedBy=multi-user.target
 EOF
-    systemctl daemon-reload
-    systemctl enable xray.service
+	systemctl daemon-reload
+	systemctl enable xray.service
+	echo "net.ipv4.tcp_fastopen = 3" >> /etc/sysctl.conf
+	sysctl -p
 }
 
 vmessConfig() {
