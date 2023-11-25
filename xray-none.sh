@@ -337,7 +337,7 @@ EOF
 	systemctl daemon-reload
 	systemctl enable xray.service
 	echo "net.ipv4.tcp_fastopen = 3" >> /etc/sysctl.conf
-	sysctl -p
+	sysctl -p >/dev/null 2>&1
 }
 
 vmessConfig() {
