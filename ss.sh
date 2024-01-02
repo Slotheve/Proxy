@@ -97,6 +97,7 @@ Selectcipher() {
 }
 
 Download() {
+    mkdir -p /etc/ss
     rm -rf /etc/ss/shadowsocks
     ArchAffix
     DOWNLOAD_LINK="https://raw.githubusercontent.com/Slotheve/backup/main/shadowsocks"
