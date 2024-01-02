@@ -252,8 +252,6 @@ Menu() {
 	echo " ----------------------"
 	echo -e "  ${GREEN}0.${PLAIN}  退出"
 	echo ""
-	echo -n " 当前状态："
-	echo 
 
 	read -p " 请选择操作[0-6]：" answer
 	case $answer in
