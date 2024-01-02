@@ -15,7 +15,7 @@ colorEcho() {
     echo -e "${1}${@:2}${PLAIN}"
 }
 
-ciphers=(
+cipher=(
 AEAD_AES_256_GCM
 AEAD_AES_128_GCM
 AEAD_CHACHA20_POLY1305
