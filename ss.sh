@@ -93,6 +93,7 @@ Selectcipher() {
     fi
     cipher=${cipher[$pick-1]}
     colorEcho $BLUE "加密: ${cipher}"
+    echo ""
 }
 
 Download() {
