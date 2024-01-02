@@ -218,7 +218,7 @@ GetConfig() {
 
 OutConfig() {
     echo -e "   ${BLUE}协议: ${PLAIN} ${RED}ShadowSocks${PLAIN}"
-    echo -e "   ${BLUE}地址(IP): ${PLAIN} ${RED}${IP}${PLAIN}"
+    echo -e "   ${BLUE}地址(IP): ${PLAIN} ${RED}${IP4}${PLAIN}"
     echo -e "   ${BLUE}SS端口(PORT)：${PLAIN} ${RED}${port}${PLAIN}"
     echo -e "   ${BLUE}SS加密：${CIPHER} ${RED}${cipher}${PLAIN}"
     echo -e "   ${BLUE}SS密码(PASS)：${PLAIN} ${RED}${pass}${PLAIN}"
