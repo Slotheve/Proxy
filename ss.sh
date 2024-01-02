@@ -104,7 +104,7 @@ Download() {
 }
 
 Generate(){
-    set_port
+    Set_port
     Selectcipher
     Set_pass
 }
