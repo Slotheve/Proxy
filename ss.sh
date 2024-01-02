@@ -80,7 +80,7 @@ Selectcipher() {
  	  hint="${cipher[$i-1]}"
  	  echo -e "${GREEN}${i}${PLAIN}) ${hint}"
     done
-    read -p "请选择加密[1-3] (默认: ${cipher[1]}):" pick
+    read -p "请选择加密[1-3] (默认: ${cipher[0]}):" pick
     [ -z "$pick" ] && pick=0
     expr ${pick} + 1 &>/dev/null
     if [ $? -ne 0 ]; then
