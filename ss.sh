@@ -115,8 +115,8 @@ Deploy(){
     cat > ss.service<<-EOF
 [Unit]
 Description=ShadowSocks
-After=network-online.target
-Wants=network-online.target systemd-networkd-wait-online.service
+After=network.target
+Wants=network.target
 StartLimitBurst=5
 StartLimitIntervalSec=500
 
