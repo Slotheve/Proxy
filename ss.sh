@@ -81,7 +81,7 @@ Selectcipher() {
  	  echo -e "${GREEN}${i}${PLAIN}) ${hint}"
     done
     read -p "请选择加密[1-3] (默认: ${cipher[1]}):" pick
-    [ -z "$pick" ] && pick=1
+    [ -z "$pick" ] && pick=0
     expr ${pick} + 1 &>/dev/null
     if [ $? -ne 0 ]; then
 	  colorEcho $RED "错误, 请选择[1-3]"
