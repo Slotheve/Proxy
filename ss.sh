@@ -9,7 +9,6 @@ PLAIN='\033[0m'
 
 IP4=`curl -sL -4 ip.sb`
 CPU=`uname -m`
-systemd="/etc/systemd/system/ss.service"
 
 colorEcho() {
     echo -e "${1}${@:2}${PLAIN}"
@@ -47,17 +46,30 @@ CheckSystem() {
     if [[ "$?" != "0" ]]; then
       res=`which apt 2>/dev/null`
       if [[ "$?" != "0" ]]; then
-        colorEcho $RED " 不受支持的Linux系统"
-        exit 1
-      fi
-	  OS="apt"
+        res=`which apk 2>/dev/null`
+        if [[ "$?" != "0" ]]; then
+          colorEcho $RED " 不受支持的Linux系统"
+          exit 1
+		fi
+		OS="apk"
+      else
+	    OS="apt"
+	  fi
     else
 	  OS="yum"
     fi
+    if [[ ${OS} == "apk" ]]; then
+      config="/etc/init.d/ss"
+    else
+      config="/etc/systemd/system/ss.service"
+    fi
     res=`which systemctl 2>/dev/null`
     if [[ "$?" != "0" ]]; then
-      colorEcho $RED " 系统版本过低，请升级到最新版本"
-      exit 1
+	  res=`which rc 2>/dev/null`
+	  if [[ "$?" != "0" ]]; then
+        colorEcho $RED " 系统版本过低，请升级到最新版本"
+        exit 1
+	  fi
     fi
 }
 
@@ -67,10 +79,15 @@ Dependency(){
 	  colorEcho $YELLOW "安装依赖中..."
 	  yum install wget -y >/dev/null 2>&1
 	  echo ""
-    else
+    elif [[ ${OS} == "apt" ]]; then
 	  echo ""
 	  colorEcho $YELLOW "安装依赖中..."
 	  apt install wget -y >/dev/null 2>&1
+	  echo ""
+    else
+	  echo ""
+	  colorEcho $YELLOW "安装依赖中..."
+	  apk add wget -y >/dev/null 2>&1
 	  echo ""
     fi
 }
@@ -113,8 +130,25 @@ Generate(){
 }
 
 Deploy(){
-    cd /etc/systemd/system
-    cat > ss.service<<-EOF
+    if [[ ${OS} == "apk" ]]; then
+      cat > /etc/init.d/ss<<-EOF
+#!/sbin/openrc-run
+
+name="ShadowSocks"
+command="/etc/ss/shadowsocks"
+command_background=true
+command_args="-s 0.0.0.0:${PORT} -cipher ${cipher} -password ${PASS} -udp"
+pidfile="/run/${RC_SVCNAME}.pid"
+depend() {
+        need net
+        use dns logger netmount
+}
+EOF
+      chmod +x /etc/init.d/ss
+      service ss start
+      rc-update add ss
+    else
+      cat > /etc/systemd/system/ss.service<<-EOF
 [Unit]
 Description=ShadowSocks
 After=network.target
@@ -136,9 +170,10 @@ StandardOutput=null
 [Install]
 WantedBy=multi-user.target
 EOF
-    systemctl daemon-reload
-    systemctl enable ss
-    systemctl restart ss
+      systemctl daemon-reload
+      systemctl enable ss
+      systemctl restart ss
+    fi
 }
 
 Set_port(){
@@ -189,11 +224,17 @@ Stop(){
 Uninstall(){
     read -p $' 是否卸载SS？[y/n]\n (默认n, 回车): ' answer
     if [[ "${answer}" = "y" ]]; then
-      systemctl stop ss
-	  systemctl disable ss >/dev/null 2>&1
-	  rm -rf /etc/systemd/system/ss.service
+	  if [[ ${OS} == "apk" ]]; then
+	    rc-update del ss
+	    service ss stop
+	    rm -rf /etc/init.d/ss
+	  else
+	    systemctl stop ss
+	    systemctl disable ss >/dev/null 2>&1
+	    rm -rf /etc/systemd/system/ss.service
+	    systemctl daemon-reload
+	  fi
 	  rm -rf /etc/ss
-	  systemctl daemon-reload
 	  colorEcho $BLUE " SS已经卸载完毕"
     else
 	  colorEcho $BLUE " 取消卸载"
@@ -201,21 +242,27 @@ Uninstall(){
 }
 
 ShowInfo() {
-    if [[ ! -f ${systemd} ]]; then
+    if [[ ! -f ${config} ]]; then
 	  colorEcho $RED " SS未安装"
  	  exit 1
     fi
     echo ""
-    echo -e " ${BLUE}SS配置文件: ${PLAIN} ${RED}${systemd}${PLAIN}"
+    echo -e " ${BLUE}SS配置文件: ${PLAIN} ${RED}${config}${PLAIN}"
     colorEcho $BLUE " SS配置信息："
     GetConfig
     OutConfig
 }
 
 GetConfig() {
-    port=`grep cipher ${systemd} | awk -F '=' '{print $2}' | cut -d: -f2 | cut -d- -f1`
-	cipher=`grep cipher ${systemd} | awk -F '=' '{print $2}' | cut -d' ' -f5`
-    pass=`grep cipher ${systemd} | awk -F '=' '{print $2}' | cut -d' ' -f7`
+    if [[ ${OS} == "apk" ]]; then
+      port=`grep cipher ${config} | awk -F '=' '{print $2}' | cut -d: -f2 | cut -d- -f1`
+	  cipher=`grep cipher ${config} | awk -F '=' '{print $2}' | cut -d' ' -f4`
+      pass=`grep cipher ${config} | awk -F '=' '{print $2}' | cut -d' ' -f6`
+    else
+      port=`grep cipher ${config} | awk -F '=' '{print $2}' | cut -d: -f2 | cut -d- -f1`
+	  cipher=`grep cipher ${config} | awk -F '=' '{print $2}' | cut -d' ' -f5`
+      pass=`grep cipher ${config} | awk -F '=' '{print $2}' | cut -d' ' -f7`
+    fi
 }
 
 OutConfig() {
