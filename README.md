@@ -1,7 +1,8 @@
 # Proxy
 各种代理协议一键脚本
 
-### ShadowSocks
+### ShadowSocks (支持alpine)
+alpine请先安装bash curl
 ```shell
 bash <(curl -fsSL https://raw.githubusercontent.com/Slotheve/Proxy/main/ss.sh)
 ```
