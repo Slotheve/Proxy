@@ -65,7 +65,7 @@ CheckSystem() {
     fi
     res=`which systemctl 2>/dev/null`
     if [[ "$?" != "0" ]]; then
-	  res=`which rc 2>/dev/null`
+	  res=`which rc-service 2>/dev/null`
 	  if [[ "$?" != "0" ]]; then
         colorEcho $RED " 系统版本过低，请升级到最新版本"
         exit 1
