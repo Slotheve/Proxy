@@ -245,6 +245,7 @@ OutPut() {
     echo -e "   ${BLUE}密钥: ${PLAIN} ${RED}${uuid}${PLAIN}"
     echo -e "   ${BLUE}密码: ${PLAIN} ${RED}${pass}${PLAIN}"
     echo -e "   ${BLUE}加速: ${PLAIN} ${RED}bbr${PLAIN}"
+    echo -e "   ${BLUE}Alpn: ${PLAIN} ${RED}none${PLAIN}"
     echo -e "   ${BLUE}TLS&SNI: ${PLAIN} ${RED}off${PLAIN}"
 }
 
