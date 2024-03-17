@@ -106,8 +106,8 @@ Download(){
     colorEcho $YELLOW "下载Tuic: ${DOWNLOAD_LINK}"
     curl -L -H "Cache-Control: no-cache" -o /etc/tuic/tuic ${DOWNLOAD_LINK}
     chmod +x /etc/tuic/tuic
-	openssl ecparam -genkey -name prime256v1 -out /etc/tuic/private.key >/dev/null 2>&1
-	openssl req -new -x509 -days 36500 -key /etc/tuic/private.key -out /etc/tuic/cert.crt -subj "/CN=www.bing.com" >/dev/null 2>&1
+    openssl ecparam -genkey -name prime256v1 -out /etc/tuic/private.key >/dev/null 2>&1
+    openssl req -new -x509 -days 36500 -key /etc/tuic/private.key -out /etc/tuic/cert.crt -subj "/CN=www.bing.com" >/dev/null 2>&1
 }
 
 Generate(){
