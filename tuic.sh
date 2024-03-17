@@ -155,13 +155,6 @@ Port(){
     fi
 }
 
-Pass(){
-    read -p $'请输入 SS 密码\n(推荐随机生成，直接回车): ' PASS
-    [[ -z "${PASS}" ]] && PASS=`tr -dc A-Za-z0-9 </dev/urandom | head -c 8`
-    colorEcho $BLUE "PASS: ${PASS}"
-    echo ""
-}
-
 Uuid(){
     read -p $'请输入 Tuic 密钥\n(推荐随机生成，直接回车): ' UUID
     [[ -z "${UUID}" ]] && UUID=$(cat /proc/sys/kernel/random/uuid)
@@ -170,6 +163,13 @@ Uuid(){
 		Uuid
     fi
     colorEcho $BLUE "UUID: ${UUID}"
+}
+
+Pass(){
+    read -p $'请输入 Tuic 密码\n(推荐随机生成，直接回车): ' PASS
+    [[ -z "${PASS}" ]] && PASS=`tr -dc A-Za-z0-9 </dev/urandom | head -c 8`
+    colorEcho $BLUE "PASS: ${PASS}"
+    echo ""
 }
 
 Write(){
