@@ -240,12 +240,12 @@ GetConf() {
 
 OutPut() {
     echo -e "   ${BLUE}协议: ${PLAIN} ${RED}tuic${PLAIN}"
-    echo -e "   ${BLUE}版本: ${PLAIN} ${RED}v5${PLAIN}"
+    echo -e "   ${BLUE}版本: ${PLAIN} ${RED} v5${PLAIN}"
     echo -e "   ${BLUE}端口: ${PLAIN} ${RED}${port}${PLAIN}"
     echo -e "   ${BLUE}密钥: ${PLAIN} ${RED}${uuid}${PLAIN}"
     echo -e "   ${BLUE}密码: ${PLAIN} ${RED}${pass}${PLAIN}"
     echo -e "   ${BLUE}加速: ${PLAIN} ${RED}bbr${PLAIN}"
-    echo -e "   ${BLUE}TLS: ${PLAIN} ${RED}off${PLAIN}"
+    echo -e "   ${BLUE}TLS&SNI: ${PLAIN} ${RED}off${PLAIN}"
 }
 
 checkSystem
