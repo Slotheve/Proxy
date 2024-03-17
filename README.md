@@ -1,6 +1,11 @@
 # Proxy
 各种代理协议一键脚本
 
+
+### Tuic
+```shell
+bash <(curl -fsSL https://raw.githubusercontent.com/Slotheve/Proxy/main/tuic.sh)
+```
 ### ShadowSocks (支持alpine)
 alpine请先安装bash curl
 ```shell
