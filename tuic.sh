@@ -161,8 +161,10 @@ Uuid(){
     if [[ "${#UUID}" != 36 ]]; then
 		colorEcho $RED "请输入正确的密匙。"
 		Uuid
+    else
+		colorEcho $BLUE "UUID: ${UUID}"
+		echo ""
     fi
-    colorEcho $BLUE "UUID: ${UUID}"
 }
 
 Pass(){
