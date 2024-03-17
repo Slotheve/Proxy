@@ -169,6 +169,7 @@ Uuid(){
 		colorEcho $RED "请输入正确的密匙。"
 		Uuid
     fi
+    colorEcho $BLUE "UUID: ${UUID}"
 }
 
 Write(){
