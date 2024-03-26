@@ -237,22 +237,6 @@ getData() {
         read -p " 请设置trojan密码（不输则随机生成）:" PASSWORD
         [[ -z "$PASSWORD" ]] && PASSWORD=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1`
         colorEcho $BLUE " 密码：$PASSWORD"
-		echo ""
-		read -p " 请设置trojan域名（不输则随机生成）:" DOMAIN
-		[[ -z "$DOMAIN" ]] && DOMAIN=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1`.xyz
-		colorEcho $BLUE " 域名：$DOMAIN"
-		echo ""
-		read -p " 请设置域名证书（不输默认生成）:" KEY
-		[[ -z "$KEY" ]] && mkdir -pv /usr/local/etc/xray && openssl genrsa \
-		-out /usr/local/etc/xray/xray.key 2048 && chmod \
-		+x /usr/local/etc/xray/xray.key && KEY="/usr/local/etc/xray/xray.key"
-		colorEcho $BLUE " 密钥路径：$KEY"
-		echo ""
-		read -p " 请设置域名证书（不输默认生成）:" CERT
-		[[ -z "$CERT" ]] && openssl req -new -x509 -days 3650 -key /usr/local/etc/xray/xray.key \
-		-out /usr/local/etc/xray/xray.crt -subj "/C=US/ST=LA/L=LAX/O=Xray/OU=Trojan/CN=&DOMAIN" \
-		&& chmod +x /usr/local/etc/xray/xray.crt && CERT="/usr/local/etc/xray/xray.crt"
-		colorEcho $BLUE " 证书路径：$CERT"
 	elif [[ "$SS" = "true" ]]; then
 	    selectciphers
 		if [[ "$METHOD" = "2022-blake3-aes-256-gcm" || "$METHOD" = "2022-blake3-chacha20-poly1305" ]]; then
@@ -361,10 +345,6 @@ vmessConfig() {
   "outbounds": [{
     "protocol": "freedom",
     "settings": {}
-  },{
-    "protocol": "blackhole",
-    "settings": {},
-    "tag": "blocked"
   }]
 }
 EOF
@@ -398,10 +378,6 @@ vlessConfig() {
   "outbounds": [{
     "protocol": "freedom",
     "settings": {}
-  },{
-    "protocol": "blackhole",
-    "settings": {},
-    "tag": "blocked"
   }]
 }
 EOF
@@ -410,58 +386,35 @@ EOF
 trojanConfig() {
     cat > $CONFIG_FILE<<-EOF
 {
-  "inbounds": [{
-     "port": $PORT,
-     "protocol": "trojan",
-     "settings": {
-       "clients": [{
-         "password": "$PASSWORD",
-         "flow": ""
-       }],
-      "fallbacks": [],
-      "mux": {
-          "enabled": true
-	}
-     },
-     "streamSettings": {
-       "network": "tcp",
-       "security": "tls",
-       "tlsSettings": {
-         "serverName": "$DOMAIN",
-         "minVersion": "1.2",
-         "maxVersion": "1.3",
-         "cipherSuites": "",
-         "certificates": [{
-             "certificateFile": "$CERT",
-             "keyFile": "$KEY"
-         }],
-         "alpn": [
-           "h2",
-           "http/1.1"
-         ]},
-       "tcpSettings": {
-         "header": {
-           "type": "none"
-         },
-         "acceptProxyProtocol": false
-       }},
-     "tag": "inbound-$PORT",
-     "sniffing": {
-       "enabled": true,
-       "destOverride": [
-         "http",
-         "tls"
-    ]}
-  }],
-  "outbounds": [{
-    "protocol": "freedom",
-    "settings": {}
-  },{
-    "protocol": "blackhole",
-    "settings": {},
-    "tag": "blocked"
-  }]
+  "inbounds": [
+    {
+      "port": $PORT,
+      "protocol": "trojan",
+      "settings": {
+        "clients": [
+          {
+            "password": "$PASSWORD"
+          }
+        ],
+        "fallbacks": []
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      },
+      "streamSettings": {
+        "network": "tcp"
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "settings": {}
+    }
+  ]
 }
+
 EOF
 }
 
@@ -480,10 +433,6 @@ ssConfig() {
   "outbounds": [{
     "protocol": "freedom",
     "settings": {}
-  },{
-    "protocol": "blackhole",
-    "settings": {},
-    "tag": "blocked"
   }]
 }
 EOF
@@ -511,11 +460,8 @@ socksConfig() {
 	"outbounds": [{
 		"protocol": "freedom",
 		"settings": {}
-	},{
-		"protocol": "blackhole",
-		"settings": {},
-		"tag": "blocked"
-  }]
+	}
+  ]
 }
 EOF
 }
