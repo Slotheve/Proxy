@@ -248,8 +248,6 @@ bind-address: "*"
 find-process-mode: strict
 mode: rule
 log-level: error
-external-controller: 0.0.0.0:$PORT2
-secret: "$SEC2"
 tcp-concurrent: true
 global-client-fingerprint: chrome
 keep-alive-interval: 86400
