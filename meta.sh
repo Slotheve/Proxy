@@ -128,13 +128,13 @@ selectciphers() {
 }
 
 getData() {
-    read -p " 请输入mihomo节点监听端口[100-65535的一个数字]：" PORT
+    read -p " 请输入mihomo节点监听端口[100-65535的一个数字]：" PORT1
     [[ -z "${PORT}" ]] && PORT=`shuf -i200-65000 -n1`
     if [[ "${PORT:0:1}" = "0" ]]; then
 	colorEcho ${RED}  " 端口不能以0开头"
 	exit 1
     fi
-    colorEcho ${BLUE}  " mihomo节点端口：$PORT"
+    colorEcho ${BLUE}  " mihomo节点端口：$PORT1"
     if [[ "$VMESS" = "true" ]]; then
 	  echo ""
 	  read -p " 请设置vmess的UUID（不输则随机生成）:" UUID
