@@ -2,6 +2,10 @@
 各种代理协议一键脚本
 
 
+### Clash Meta
+```shell
+bash <(curl -fsSL https://raw.githubusercontent.com/Slotheve/Proxy/main/meta.sh)
+```
 ### Tuic
 ```shell
 bash <(curl -fsSL https://raw.githubusercontent.com/Slotheve/Proxy/main/tuic.sh)
