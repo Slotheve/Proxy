@@ -517,9 +517,9 @@ showInfo() {
 	colorEcho $BLUE " mihomo配置信息："
 
 	getConfigFileInfo
-	if   [[ "$protocol" = vmess ]]; then
+	if   [[ "$protocol" = "vmess" ]]; then
 		outputVmess
-	elif [[ "$protocol" = shadowsocks ]]; then
+	elif [[ "$protocol" = "shadowsocks" ]]; then
 		outputSS
 	fi
 }
