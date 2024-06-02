@@ -447,16 +447,16 @@ restart() {
 }
 
 getConfigFileInfo() {
-	protocol=`grep listeners $CONFIG_FILE -A10| grep type| cut -d\: -f2`
-	port=`grep listeners $CONFIG_FILE -A10| grep port| cut -d\: -f2`
-	uuid=`grep listeners $CONFIG_FILE -A10| grep uuid| cut -d\: -f2`
-	alterid=`grep listeners $CONFIG_FILE -A10| grep alterId| cut -d\: -f2`
-	path=`grep listeners $CONFIG_FILE -A10| grep ws-path| cut -d\: -f2| cut -d\" -f2`
-	password=`grep listeners $CONFIG_FILE -A10| grep password| cut -d\: -f2`
-	cipher=`grep listeners $CONFIG_FILE -A10| grep cipher| cut -d\: -f2`
-	if [[ "${path}" = "" ]]; then
+	protocol=`grep listeners $CONFIG_FILE -A10| grep type| cut -d\: -f2| cut -d" " -f2`
+	port=`grep listeners $CONFIG_FILE -A10| grep port| cut -d\: -f2| cut -d" " -f2`
+	uuid=`grep listeners $CONFIG_FILE -A10| grep uuid| cut -d\: -f2| cut -d" " -f2`
+	alterid=`grep listeners $CONFIG_FILE -A10| grep alterId| cut -d\: -f2| cut -d" " -f2`
+	path=`grep listeners $CONFIG_FILE -A10| grep ws-path| cut -d\: -f2| cut -d\" -f2| cut -d" " -f2`
+	password=`grep listeners $CONFIG_FILE -A10| grep password| cut -d\: -f2| cut -d" " -f2`
+	cipher=`grep listeners $CONFIG_FILE -A10| grep cipher| cut -d\: -f2| cut -d" " -f2`
+	if [[ -z "${path}" ]]; then
 	  network="tcp"
-	elif [[ "${path}" != "" ]]; then
+	elif [[ -n "${path}" ]]; then
 	  network="ws"
 	fi
 }
@@ -517,9 +517,9 @@ showInfo() {
 	colorEcho $BLUE " mihomo配置信息："
 
 	getConfigFileInfo
-	if   [[ "$protocol" = "vmess" ]]; then
+	if   [[ "${protocol}" = "vmess" ]]; then
 		outputVmess
-	elif [[ "$protocol" = "shadowsocks" ]]; then
+	else
 		outputSS
 	fi
 }
