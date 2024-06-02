@@ -198,7 +198,7 @@ archAffix() {
     return 0
 }
 
-installSingBox() {
+installmihomo() {
 	archAffix
     rm -rf /etc/mihomo
     mkdir -p /etc/mihomo
@@ -357,13 +357,12 @@ listeners:
 	udp: true
 EOF
 }
-	mkdir -p /usr/local/sing-box
+
+config() {
 	if   [[ "$VMESS" = "true" ]]; then
 		vmessConfig
-	elif [[ "$VLESS" = "true" ]]; then
-		vlessConfig
-	elif [[ "$TROJAN" = "true" ]]; then
-		trojanConfig
+	elif [[ "$SS" = "true" ]]; then
+		ssConfig
 	fi
 }
 
@@ -380,7 +379,7 @@ install() {
 		colorEcho $BLUE " mihomo已经安装"
 	else
 		colorEcho $BLUE " 安装mihomo ，架构$ARCH"
-		install
+		installmihomo
 	fi
 		config
 		setSelinux
