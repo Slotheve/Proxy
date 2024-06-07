@@ -9,7 +9,7 @@ YELLOW="\033[33m"
 BLUE="\033[36m"
 PLAIN='\033[0m'
 
-CONFIG_FILE="/etc/mihomo/config.yaml"
+CONFIG="/etc/mihomo/config.yaml"
 OS=`hostnamectl | grep -i system | cut -d: -f2`
 
 IP=`curl -sL -4 ip.sb`
@@ -63,7 +63,7 @@ colorEcho() {
 }
 
 config() {
-    local conf=`grep wsSettings $CONFIG_FILE`
+    local conf=`grep wsSettings ${CONFIG}`
     if [[ -z "$conf" ]]; then
         echo no
         return
@@ -76,11 +76,11 @@ status() {
         echo 0
         return
     fi
-    if [[ ! -f $CONFIG_FILE ]]; then
+    if [[ ! -f ${CONFIG} ]]; then
         echo 1
         return
     fi
-    port=`grep listeners $CONFIG_FILE -A10| grep port| cut -d\: -f2`
+    port=`grep listeners ${CONFIG} -A10| grep port| cut -d\: -f2`
     res=`ss -nutlp| grep ${port} | grep -i mihomo`
     if [[ -z "$res" ]]; then
         echo 2
@@ -211,7 +211,6 @@ installmihomo() {
     fi
     systemctl stop mihomo
     gzip -d /etc/mihomo/mihomo.gz
-    mv /etc/mihomo/mihomo-linux-${ARCH} /etc/mihomo/mihomo
     chmod +x /etc/mihomo/mihomo || {
     colorEcho $RED " mihomo安装失败"
     exit 1
@@ -237,12 +236,10 @@ ExecReload=/bin/kill -HUP $MAINPID
 [Install]
 WantedBy=multi-user.target
 EOF
-
-	chmod 644 ${CONFIG_FILE}
 	systemctl daemon-reload
 	systemctl enable mihomo
 
-	cat >> $CONFIG_FILE<<-EOF
+	cat >> ${CONFIG}<<-EOF
 allow-lan: false
 bind-address: "*"
 find-process-mode: strict
@@ -314,11 +311,13 @@ dns:
 rules:
   - MATCH,DIRECT
 EOF
+    chmod 644 ${CONFIG}
 }
 
 vmessConfig() {
-  if [[ "$WEBSOCKET" = "true" ]]; then
-	cat >> $CONFIG_FILE<<-EOF
+  if [[ "${WEBSOCKET}" = "true" ]]; then
+	cat >> ${CONFIG}<<-EOF
+listeners:
   - name: vmess
     type: vmess
     port: $PORT1
@@ -330,7 +329,8 @@ vmessConfig() {
      ws-path: "$WS"
 EOF
   else
-	cat >> $CONFIG_FILE<<-EOF
+	cat >> ${CONFIG}<<-EOF
+listeners:
   - name: vmess
     type: vmess
     port: $PORT1
@@ -344,7 +344,7 @@ EOF
 }
 
 ssConfig() {
-	cat >> $CONFIG_FILE<<-EOF
+	cat >> ${CONFIG}<<-EOF
 listeners:
   - name: shadowsocks
     type: shadowsocks
@@ -373,10 +373,10 @@ install() {
 	$CMD_INSTALL net-tools
 
 	colorEcho $BLUE " 安装mihomo..."
-    if [[ ! -f $CONFIG_FILE ]]; then
+    if [[ -f ${CONFIG} ]]; then
 		colorEcho $BLUE " mihomo已经安装"
 	else
-		colorEcho $BLUE " 安装mihomo ，架构$ARCH"
+		colorEcho $BLUE " 安装mihomo ，架构${ARCH}"
 		installmihomo
 	fi
 		config
@@ -387,7 +387,7 @@ install() {
 
 uninstall() {
 	res=`status`
-	if [[ $res -lt 2 ]]; then
+	if [[ $res -le 1 ]]; then
 		colorEcho $RED " mihomo未安装，请先安装！"
 		return
 	fi
@@ -411,14 +411,14 @@ uninstall() {
 
 start() {
 	res=`status`
-	if [[ $res -lt 2 ]]; then
+	if [[ $res -le 1 ]]; then
 		colorEcho $RED " mihomo未安装，请先安装！"
 		return
 	fi
 	systemctl start mihomo
 	sleep 2
 
-	port=`grep listeners $CONFIG_FILE -A10| grep port| cut -d\: -f2`
+	port=`grep listeners ${CONFIG} -A10| grep port| cut -d\: -f2`
 	res=`ss -nutlp| grep ${port} | grep -i mihomo`
 	if [[ "$res" = "" ]]; then
 		colorEcho $RED " mihomo启动失败，请检查日志或查看端口是否被占用！"
@@ -435,7 +435,7 @@ stop() {
 
 restart() {
 	res=`status`
-	if [[ $res -lt 2 ]]; then
+	if [[ $res -le 1 ]]; then
 		colorEcho $RED " mihomo未安装，请先安装！"
 		return
 	fi
@@ -445,15 +445,16 @@ restart() {
 }
 
 getConfigFileInfo() {
-	protocol=`grep listeners $CONFIG_FILE -A10| grep type| cut -d\: -f2| cut -d" " -f2`
-	port=`grep listeners $CONFIG_FILE -A10| grep port| cut -d\: -f2| cut -d" " -f2`
-	uuid=`grep listeners $CONFIG_FILE -A10| grep uuid| cut -d\: -f2| cut -d" " -f2`
-	alterid=`grep listeners $CONFIG_FILE -A10| grep alterId| cut -d\: -f2| cut -d" " -f2`
-	path=`grep listeners $CONFIG_FILE -A10| grep ws-path| cut -d\: -f2| cut -d\" -f2| cut -d" " -f2`
-	password=`grep listeners $CONFIG_FILE -A10| grep password| cut -d\: -f2| cut -d" " -f2`
-	cipher=`grep listeners $CONFIG_FILE -A10| grep cipher| cut -d\: -f2| cut -d" " -f2`
+	protocol=`grep listeners ${CONFIG} -A10| grep type| cut -d\: -f2| cut -d" " -f2`
+	port=`grep listeners ${CONFIG} -A10| grep port| cut -d\: -f2| cut -d" " -f2`
+	uuid=`grep listeners ${CONFIG} -A10| grep uuid| cut -d\: -f2| cut -d" " -f2`
+	alterid=`grep listeners ${CONFIG} -A10| grep alterId| cut -d\: -f2| cut -d" " -f2`
+	path=`grep listeners ${CONFIG} -A10| grep ws-path| cut -d\: -f2| cut -d\" -f2| cut -d" " -f2`
+	password=`grep listeners ${CONFIG} -A10| grep password| cut -d\: -f2| cut -d" " -f2`
+	cipher=`grep listeners ${CONFIG} -A10| grep cipher| cut -d\: -f2| cut -d" " -f2`
 	if [[ -z "${path}" ]]; then
 	  network="tcp"
+	  path="none"
 	elif [[ -n "${path}" ]]; then
 	  network="ws"
 	fi
@@ -511,7 +512,7 @@ showInfo() {
 	echo ""
 	echo -n -e " ${BLUE}mihomo运行状态：${PLAIN}"
 	statusText
-	echo -e " ${BLUE}mihomo配置文件: ${PLAIN} ${RED}${CONFIG_FILE}${PLAIN}"
+	echo -e " ${BLUE}mihomo配置文件: ${PLAIN} ${RED}${CONFIG}${PLAIN}"
 	colorEcho $BLUE " mihomo配置信息："
 
 	getConfigFileInfo
@@ -535,18 +536,18 @@ showLog() {
 menu() {
 	clear
 	echo "####################################################"
-	echo -e "#               ${RED}mihomo一键安装脚本${PLAIN}                #"
+	echo -e "#               ${RED}mihomo一键安装脚本${PLAIN}                 #"
 	echo -e "# ${GREEN}作者${PLAIN}: 怠惰(Slotheve)                             #"
 	echo -e "# ${GREEN}网址${PLAIN}: https://slotheve.com                       #"
 	echo -e "# ${GREEN}频道${PLAIN}: https://t.me/SlothNews                     #"
 	echo "####################################################"
 	echo " -----------------------------------------------"
 	colorEcho $GREEN "  全协议支持UDP over TCP , 且ss/socks支持原生UDP"
-  echo " -----------------------------------------------"
+	echo " -----------------------------------------------"
 	echo -e "  ${GREEN}1.${PLAIN}  安装vmess"
 	echo -e "  ${GREEN}2.${PLAIN}  安装shadowsocks"
 	echo " --------------------"
-	echo -e "  ${GREEN}3.${PLAIN} ${RED} 卸载SingBox${PLAIN}"
+	echo -e "  ${GREEN}3.${PLAIN} ${RED} 卸载mihomo${PLAIN}"
 	echo " --------------------"
 	echo -e "  ${GREEN}4.${PLAIN} 启动mihomo"
 	echo -e "  ${GREEN}5.${PLAIN} 重启mihomo"
