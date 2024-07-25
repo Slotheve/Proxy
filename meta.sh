@@ -15,6 +15,7 @@ OS=`hostnamectl | grep -i system | cut -d: -f2`
 IP=`curl -sL -4 ip.sb`
 VMESS="false"
 SS="false"
+WEBSOCKET="false"
 
 ciphers=(
 aes-256-gcm
@@ -239,7 +240,7 @@ EOF
 	systemctl daemon-reload
 	systemctl enable mihomo
 
-	cat >> ${CONFIG}<<-EOF
+	cat > ${CONFIG}<<-EOF
 allow-lan: false
 bind-address: "*"
 find-process-mode: strict
@@ -352,14 +353,14 @@ listeners:
     listen: 0.0.0.0
     password: $PASSWORD
     cipher: $METHOD
-	udp: true
+    udp: true
 EOF
 }
 
 config() {
-	if   [[ "$VMESS" = "true" ]]; then
+	if   [[ "${VMESS}" = "true" ]]; then
 		vmessConfig
-	elif [[ "$SS" = "true" ]]; then
+	elif [[ "${SS}" = "true" ]]; then
 		ssConfig
 	fi
 }
