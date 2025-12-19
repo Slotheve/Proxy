@@ -73,34 +73,31 @@ config() {
 }
 
 status() {
-    if [[ ! -f /etc/mihomo/mihomo ]]; then
+    if [[ -f /etc/mihomo/mihomo ]]; then
         echo 0
         return
     fi
-    if [[ ! -f ${CONFIG} ]]; then
+    if [[ -f ${CONFIG} ]]; then
         echo 1
         return
     fi
-    port=`grep listeners ${CONFIG} -A10| grep port| cut -d\: -f2`
-    res=`ss -nutlp| grep ${port} | grep -i mihomo`
-    if [[ -z "$res" ]]; then
-        echo 2
-        return
-    fi
+    #port=`grep listeners ${CONFIG} -A10| grep port| cut -d\: -f2`
+    #res=`ss -nutlp| grep ${port} | grep -i mihomo`
+    #if [[ -z "$res" ]]; then
+    #    echo 2
+    #    return
+    #fi
     
-    if [[ `config` != "yes" ]]; then
-        echo 3
-    fi
+    #if [[ `config` != "yes" ]]; then
+    #    echo 3
+    #fi
 }
 
 statusText() {
     res=`status`
     case $res in
-        2)
-            echo -e ${GREEN}已安装${PLAIN} ${RED}未运行${PLAIN}
-            ;;
-        3)
-            echo -e ${GREEN}已安装${PLAIN} ${GREEN}正在运行${PLAIN}
+        1)
+            echo -e ${GREEN}已安装${PLAIN}
             ;;
         *)
             echo -e ${RED}未安装${PLAIN}
