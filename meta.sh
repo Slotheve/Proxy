@@ -293,7 +293,7 @@ install() {
 
 uninstall() {
 	res=`status`
-	if [[ $res -le 1 ]]; then
+	if [[ $res -le 0 ]]; then
 		colorEcho $RED " mihomo未安装，请先安装！"
 		return
 	fi
