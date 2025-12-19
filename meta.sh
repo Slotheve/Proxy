@@ -1,5 +1,5 @@
 #!/bin/bash
-# singbox一键安装脚本
+# Mihomo一键安装脚本
 # Author: Slotheve<https://slotheve.com>
 
 
@@ -253,116 +253,30 @@ profile:
   store-selected: true
   store-fake-ip: false
 tun:
-  enable: true
-  stack: mixed
+  enable: false
+  endpoint-independent-nat: true
+  stack: system
   dns-hijack:
-    - 0.0.0.0:53
+    - any:53
+    - tcp://any:53
   auto-detect-interface: true
   auto-route: true
-  inet4-route-address:
+  route-address:
     - 0.0.0.0/1
     - 128.0.0.0/1
-  inet6-route-address:
     - "::/1"
     - "8000::/1"
 dns:
   enable: true
   ipv6: false
-  enhanced-mode: fake-ip
-  fake-ip-range: 198.18.0.1/16
+  enhanced-mode: redir-host
   nameserver:
     - 8.8.8.8
     - 1.1.1.1
-  fake-ip-filter:
-    - '*.lan'
-    - '*.direct'
-    - '*.local*'
-    - cable.auth.com
-    - '*.msftconnecttest.com'
-    - '*.msftncsi.com'
-    - network-test.debian.org
-    - detectportal.firefox.com
-    - resolver1.opendns.com
-    - '*.srv.nintendo.net'
-    - '*.stun.playstation.net'
-    - xbox.*.microsoft.com
-    - '*.xboxlive.com'
-    - stun.*
-    - global.turn.twilio.com
-    - global.stun.twilio.com
-    - app.yinxiang.com
-    - injections.adguard.org
-    - local.adguard.org
-    - cable.auth.com
-    - '*.logon.battle.net'
-    - api-jooxtt.sanook.com
-    - api.joox.com
-    - joox.com
-    - proxy.golang.org
-    - '*.cmpassport.com'
-    - id6.me
-    - '*.icitymobile.mobi'
-    - pool.ntp.org
-    - '*.pool.ntp.org'
-    - ntp.*.com
-    - time.*.com
-    - ntp?.*.com
-    - time?.*.com
-    - time.*.gov
 rules:
   - MATCH,DIRECT
 EOF
     chmod 644 ${CONFIG}
-}
-
-vmessConfig() {
-  if [[ "${WEBSOCKET}" = "true" ]]; then
-	cat >> ${CONFIG}<<-EOF
-listeners:
-  - name: vmess
-    type: vmess
-    port: $PORT1
-    listen: 0.0.0.0
-    users:
-      - username: vmess
-        uuid: $UUID
-        alterId: 0
-     ws-path: "$WS"
-EOF
-  else
-	cat >> ${CONFIG}<<-EOF
-listeners:
-  - name: vmess
-    type: vmess
-    port: $PORT1
-    listen: 0.0.0.0
-    users:
-      - username: vmess
-        uuid: $UUID
-        alterId: 0
-EOF
-  fi
-}
-
-ssConfig() {
-	cat >> ${CONFIG}<<-EOF
-listeners:
-  - name: shadowsocks
-    type: shadowsocks
-    port: $PORT1
-    listen: 0.0.0.0
-    password: $PASSWORD
-    cipher: $METHOD
-    udp: true
-EOF
-}
-
-config() {
-	if   [[ "${VMESS}" = "true" ]]; then
-		vmessConfig
-	elif [[ "${SS}" = "true" ]]; then
-		ssConfig
-	fi
 }
 
 install() {
@@ -380,10 +294,6 @@ install() {
 		colorEcho $BLUE " 安装mihomo ，架构${ARCH}"
 		installmihomo
 	fi
-		config
-		setSelinux
-		start
-		showInfo
 }
 
 uninstall() {
@@ -397,7 +307,7 @@ uninstall() {
 	read -p " 确定卸载mihomo？[y/n]：" answer
 	if [[ "${answer,,}" = "y" ]]; then
 		stop
-		systemctl disable sing-box
+		systemctl disable mihomo
 		rm -rf /etc/systemd/system/mihomo.service
 		systemctl daemon-reload
 		rm -rf /etc/mihomo
@@ -445,62 +355,9 @@ restart() {
 	start
 }
 
-getConfigFileInfo() {
-	protocol=`grep listeners ${CONFIG} -A10| grep type| cut -d\: -f2| cut -d" " -f2`
-	port=`grep listeners ${CONFIG} -A10| grep port| cut -d\: -f2| cut -d" " -f2`
-	uuid=`grep listeners ${CONFIG} -A10| grep uuid| cut -d\: -f2| cut -d" " -f2`
-	alterid=`grep listeners ${CONFIG} -A10| grep alterId| cut -d\: -f2| cut -d" " -f2`
-	path=`grep listeners ${CONFIG} -A10| grep ws-path| cut -d\: -f2| cut -d\" -f2| cut -d" " -f2`
-	password=`grep listeners ${CONFIG} -A10| grep password| cut -d\: -f2| cut -d" " -f2`
-	cipher=`grep listeners ${CONFIG} -A10| grep cipher| cut -d\: -f2| cut -d" " -f2`
-	if [[ -z "${path}" ]]; then
-	  network="tcp"
-	  path="none"
-	elif [[ -n "${path}" ]]; then
-	  network="ws"
-	fi
-}
-
-outputVmess() {
-    raw="{
-      \"v\": \"2\",
-      \"ps\": \"\",
-      \"add\": \"${IP}\",
-      \"port\": \"${port}\",
-      \"id\": \"${uuid}\",
-      \"aid\": \"${alterid}\",
-      \"scy\": \"none\",
-      \"net\": \"${network}\",
-      \"type\": \"none\",
-      \"host\": \"\",
-      \"path\": \"${path}\",
-      \"tls\": \"\",
-      \"sni\": \"\",
-      \"alpn\": \"\",
-      \"fp\": \"\"
-    }"
-
-	link=`echo -n ${raw} | base64 -w 0`
-	link="vmess://${link}"
-
-	echo -e "   ${BLUE}协议: ${PLAIN} ${RED}${protocol}${PLAIN}"
-	echo -e "   ${BLUE}IP(address): ${PLAIN} ${RED}${IP}${PLAIN}"
-	echo -e "   ${BLUE}端口(port)：${PLAIN} ${RED}${port}${PLAIN}"
-	echo -e "   ${BLUE}id(uuid)：${PLAIN} ${RED}${uuid}${PLAIN}"
-	echo -e "   ${BLUE}额外id(alterid)：${PLAIN} ${RED}${alterid}${PLAIN}"
-	echo -e "   ${BLUE}传输协议(network)：${PLAIN} ${RED}${network}${PLAIN}"
-	echo -e "   ${BLUE}路径(ws)：${PLAIN} ${RED}${path}${PLAIN}"
-	echo ""
-	echo -e "   ${BLUE}vmess链接:${PLAIN} $RED$link$PLAIN"
-}
-
-outputSS() {
-	echo -e "   ${BLUE}协议: ${PLAIN} ${RED}${protocol}${PLAIN}"
-	echo -e "   ${BLUE}IP(address): ${PLAIN} ${RED}${IP}${PLAIN}"
-	echo -e "   ${BLUE}端口(port)：${PLAIN} ${RED}${port}${PLAIN}"
-	echo -e "   ${BLUE}加密(cipher)：${PLAIN} ${RED}${cipher}${PLAIN}"
-	echo -e "   ${BLUE}传输协议(network)：${PLAIN} ${RED}tcp&udp${PLAIN}"
-	echo -e "   ${BLUE}密码(passwd)：${PLAIN} ${RED}${password}${PLAIN}"
+output() {
+	OUTPUT=`grep listeners ${CONFIG} -A100`
+	echo -e "${BLUE}${OUTPUT}${PLAIN}"
 }
 
 showInfo() {
@@ -516,12 +373,7 @@ showInfo() {
 	echo -e " ${BLUE}mihomo配置文件: ${PLAIN} ${RED}${CONFIG}${PLAIN}"
 	colorEcho $BLUE " mihomo配置信息："
 
-	getConfigFileInfo
-	if   [[ "${protocol}" = "vmess" ]]; then
-		outputVmess
-	else
-		outputSS
-	fi
+	output
 }
 
 showLog() {
@@ -545,17 +397,15 @@ menu() {
 	echo " -----------------------------------------------"
 	colorEcho $GREEN "  全协议支持UDP over TCP , 且ss/socks支持原生UDP"
 	echo " -----------------------------------------------"
-	echo -e "  ${GREEN}1.${PLAIN}  安装vmess"
-	echo -e "  ${GREEN}2.${PLAIN}  安装shadowsocks"
+	echo -e "  ${GREEN}1.${PLAIN}  安装Mihomo"
+	echo -e "  ${GREEN}2.${PLAIN} ${RED} 卸载mihomo${PLAIN}"
 	echo " --------------------"
-	echo -e "  ${GREEN}3.${PLAIN} ${RED} 卸载mihomo${PLAIN}"
+	echo -e "  ${GREEN}3.${PLAIN} 启动mihomo"
+	echo -e "  ${GREEN}4.${PLAIN} 重启mihomo"
+	echo -e "  ${GREEN}5.${PLAIN} 停止mihomo"
 	echo " --------------------"
-	echo -e "  ${GREEN}4.${PLAIN} 启动mihomo"
-	echo -e "  ${GREEN}5.${PLAIN} 重启mihomo"
-	echo -e "  ${GREEN}6.${PLAIN} 停止mihomo"
-	echo " --------------------"
-	echo -e "  ${GREEN}7.${PLAIN} 查看mihomo配置"
-	echo -e "  ${GREEN}8.${PLAIN}查看mihomo日志"
+	echo -e "  ${GREEN}6.${PLAIN} 查看mihomo配置"
+	echo -e "  ${GREEN}7.${PLAIN}查看mihomo日志"
 	echo " --------------------"
 	echo -e "  ${GREEN}0.${PLAIN}  退出"
 	echo ""
@@ -569,29 +419,24 @@ menu() {
 			exit 0
 			;;
 		1)
-			VMESS="true"
 			install
 			;;
 		2)
-			SS="true"
-			install
-			;;
-		3)
 			uninstall
 			;;
-		4)
+		3)
 			start
 			;;
-		5)
+		4)
 			restart
 			;;
-		6)
+		5)
 			stop
 			;;
-		7)
+		6)
 			showInfo
 			;;
-		8)
+		7)
 			showLog
 			;;
 		*)
