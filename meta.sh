@@ -280,8 +280,6 @@ EOF
 }
 
 install() {
-	getData
-
 	$PMT clean all
 	[[ "$PMT" = "apt" ]] && $PMT update
 	$CMD_INSTALL wget vim tar openssl
@@ -291,7 +289,7 @@ install() {
     if [[ -f ${CONFIG} ]]; then
 		colorEcho $BLUE " mihomo已经安装"
 	else
-		colorEcho $BLUE " 安装mihomo ，架构${ARCH}"
+		colorEcho $BLUE " "
 		installmihomo
 	fi
 }
