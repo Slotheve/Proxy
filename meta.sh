@@ -74,13 +74,13 @@ config() {
 
 status() {
     if [[ -f /etc/mihomo/mihomo ]]; then
-        echo 0
-        return
-    fi
-    if [[ -f ${CONFIG} ]]; then
         echo 1
         return
     fi
+    #if [[ -f ${CONFIG} ]]; then
+    #    echo 1
+    #    return
+    #fi
     #port=`grep listeners ${CONFIG} -A10| grep port| cut -d\: -f2`
     #res=`ss -nutlp| grep ${port} | grep -i mihomo`
     #if [[ -z "$res" ]]; then
